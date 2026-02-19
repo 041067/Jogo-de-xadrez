@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #000000;
+  --bg-panel: #0a0a0a;
+  --bg-card: #111111;
+
+  --text-main: #ffffff;
+  --text-muted: #9ca3af;
+
+  --accent: #dc2626; /* vermelho xadrez */
+}
+
+html,
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
