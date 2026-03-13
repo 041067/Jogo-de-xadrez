@@ -15,7 +15,7 @@ function isPathClear(
   fromR: number,
   fromC: number,
   toR: number,
-  toC: number,
+  toC: number
 ) {
   const stepR = Math.sign(toR - fromR);
   const stepC = Math.sign(toC - fromC);
@@ -25,6 +25,7 @@ function isPathClear(
 
   while (r !== toR || c !== toC) {
     if (board[r][c] !== ".") return false;
+
     r += stepR;
     c += stepC;
   }
@@ -38,7 +39,7 @@ export function isValidMove(
   fromC: number,
   toR: number,
   toC: number,
-  turn: "white" | "black",
+  turn: "white" | "black"
 ) {
   const piece = board[fromR][fromC];
   const target = board[toR][toC];
@@ -58,6 +59,7 @@ export function isValidMove(
       const dir = isWhite(piece) ? -1 : 1;
 
       if (dc === 0 && dr === dir && target === ".") return true;
+
       if (Math.abs(dc) === 1 && dr === dir && target !== ".") return true;
 
       return false;
