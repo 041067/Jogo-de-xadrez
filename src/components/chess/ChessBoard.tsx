@@ -1,22 +1,18 @@
 import { useState } from "react";
 import ChessSquare from "./ChessSquare";
 import { isValidMove } from "@/utils/chessRules";
+import { fenToBoard } from "@/utils/fen";
 
-const initialBoard = [
-  "rnbqkbnr",
-  "pppppppp",
-  "........",
-  "........",
-  "........",
-  "........",
-  "PPPPPPPP",
-  "RNBQKBNR",
-];
+type ChessBoardProps = {
+  gameFen: string;
+  onMove: (fr: number, fc: number, tr: number, tc: number) => void;
+};
 
-export default function ChessBoard() {
-  const [board, setBoard] = useState(initialBoard);
+export default function ChessBoard({ gameFen, onMove }: ChessBoardProps) {
+  const board = fenToBoard(gameFen);
+  const turn = gameFen.split(" ")[1] === "w" ? "white" : "black";
+
   const [selected, setSelected] = useState<string | null>(null);
-  const [turn, setTurn] = useState<"white" | "black">("white");
 
   function handleClick(r: number, c: number) {
     const key = `${r}-${c}`;
@@ -30,15 +26,10 @@ export default function ChessBoard() {
 
     const [sr, sc] = selected.split("-").map(Number);
 
-    if (
-      isValidMove(board, sr, sc, r, c, turn)
-    ) {
-      const newBoard = board.map((row) => row.split(""));
-      newBoard[r][c] = newBoard[sr][sc];
-      newBoard[sr][sc] = ".";
+    const boardStrings = board.map((row) => row.join(""));
 
-      setBoard(newBoard.map((r) => r.join("")));
-      setTurn(turn === "white" ? "black" : "white");
+    if (isValidMove(boardStrings, sr, sc, r, c, turn)) {
+      onMove(sr, sc, r, c);
     }
 
     setSelected(null);
@@ -52,7 +43,7 @@ export default function ChessBoard() {
 
       <div className="grid grid-cols-8 w-[320px] border-4 border-red-700">
         {board.map((row, r) =>
-          row.split("").map((piece, c) => (
+          row.map((piece, c) => (
             <ChessSquare
               key={`${r}-${c}`}
               row={r}
@@ -61,7 +52,7 @@ export default function ChessBoard() {
               selected={selected === `${r}-${c}`}
               onClick={() => handleClick(r, c)}
             />
-          ))
+          )),
         )}
       </div>
     </div>
