@@ -1,49 +1,42 @@
-export function fenToBoard(fen: string) {
-  const [position] = fen.split(" ");
-  const rows = position.split("/");
+export function fenToBoard(fen: string): string[][] {
+  const [boardPart] = fen.split(" ");
 
-  return rows.map((row) => {
-    const result: string[] = [];
+  return boardPart.split("/").map((row) => {
+    const squares: string[] = [];
 
     for (const char of row) {
       if (!isNaN(Number(char))) {
-        result.push(...Array(Number(char)).fill("."));
+        squares.push(...Array(Number(char)).fill("."));
       } else {
-        result.push(char);
+        squares.push(char);
       }
     }
 
-    return result;
+    return squares;
   });
 }
 
-export function boardToFen(
-  board: string[],
-  turn: "w" | "b"
-) {
-  let fen = "";
-
-  for (let r = 0; r < 8; r++) {
+export function boardToFen(board: string[][], turn: string): string {
+  const fenRows = board.map((row) => {
     let empty = 0;
+    let fenRow = "";
 
-    for (let c = 0; c < 8; c++) {
-      const piece = board[r][c];
-
-      if (piece === ".") {
+    for (const square of row) {
+      if (square === ".") {
         empty++;
       } else {
         if (empty > 0) {
-          fen += empty;
+          fenRow += empty;
           empty = 0;
         }
-
-        fen += piece;
+        fenRow += square;
       }
     }
 
-    if (empty > 0) fen += empty;
-    if (r < 7) fen += "/";
-  }
+    if (empty > 0) fenRow += empty;
 
-  return `${fen} ${turn} - - 0 1`;
+    return fenRow;
+  });
+
+  return `${fenRows.join("/")} ${turn}`;
 }

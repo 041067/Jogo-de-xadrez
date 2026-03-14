@@ -1,80 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChessSquare from "./ChessSquare";
-import { isValidMove } from "@/utils/chessRules";
-import { fenToBoard } from "@/utils/fen";
-import { getValidMoves } from "@/utils/getValidMoves";
+import { fenToBoard, boardToFen } from "@/utils/fen";
 
-type ChessBoardProps = {
+type Props = {
   gameFen: string;
-  onMove: (
-    fr: number,
-    fc: number,
-    tr: number,
-    tc: number
-  ) => void;
+  playerColor: "white" | "black";
+  onMove: (fen: string) => void;
 };
 
-export default function ChessBoard({ gameFen, onMove }: ChessBoardProps) {
-  const board = fenToBoard(gameFen);
-  const turn = gameFen.split(" ")[1] === "w" ? "white" : "black";
-
+export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
+  const [board, setBoard] = useState<string[][]>(fenToBoard(gameFen));
   const [selected, setSelected] = useState<string | null>(null);
-  const [validMoves, setValidMoves] = useState<{ r: number; c: number }[]>([]);
+
+  useEffect(() => {
+    setBoard(fenToBoard(gameFen));
+  }, [gameFen]);
+
+  const turn = gameFen.split(" ")[1] === "w" ? "white" : "black";
 
   function handleClick(r: number, c: number) {
     const key = `${r}-${c}`;
 
-    const boardStrings = board.map((row) => row.join(""));
+    if (turn !== playerColor) return;
 
     if (!selected) {
-      if (board[r][c] !== ".") {
-        setSelected(key);
+      const piece = board[r][c];
+      if (piece === ".") return;
 
-        const moves = getValidMoves(boardStrings, r, c, turn);
-        setValidMoves(moves);
-      }
+      const isWhite = piece === piece.toUpperCase();
+      if (playerColor === "white" && !isWhite) return;
+      if (playerColor === "black" && isWhite) return;
+
+      setSelected(key);
       return;
     }
 
     const [sr, sc] = selected.split("-").map(Number);
 
-    const isMoveValid = validMoves.some(
-      (m) => m.r === r && m.c === c
-    );
+    const newBoard = structuredClone(board);
 
-    if (isMoveValid) {
-      onMove(sr, sc, r, c);
-    }
+    newBoard[r][c] = newBoard[sr][sc];
+    newBoard[sr][sc] = ".";
+
+    const nextTurn = turn === "white" ? "b" : "w";
+
+    const newFen = boardToFen(newBoard, nextTurn);
+
+    onMove(newFen);
 
     setSelected(null);
-    setValidMoves([]);
   }
 
   return (
     <div>
-      <p className="mb-2 font-semibold">
-        Turno: {turn === "white" ? "Brancas" : "Pretas"}
-      </p>
+      <p>Turno: {turn}</p>
 
-      <div className="grid grid-cols-8 w-[320px] border-4 border-red-700">
+      <div className="grid grid-cols-8 w-[320px] h-[320px] border-5 border-red-700">
         {board.map((row, r) =>
-          row.map((piece, c) => {
-            const isValid = validMoves.some(
-              (m) => m.r === r && m.c === c
-            );
-
-            return (
-              <ChessSquare
-                key={`${r}-${c}`}
-                row={r}
-                col={c}
-                piece={piece}
-                selected={selected === `${r}-${c}`}
-                validMove={isValid}
-                onClick={() => handleClick(r, c)}
-              />
-            );
-          })
+          row.map((piece, c) => (
+            <ChessSquare
+              key={`${r}-${c}`}
+              row={r}
+              col={c}
+              piece={piece}
+              selected={selected === `${r}-${c}`}
+              onClick={() => handleClick(r, c)}
+            />
+          ))
         )}
       </div>
     </div>

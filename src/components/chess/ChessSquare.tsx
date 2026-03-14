@@ -1,25 +1,24 @@
-interface Props {
+type Props = {
   row: number;
   col: number;
   piece: string;
   selected: boolean;
-  validMove?: boolean;
   onClick: () => void;
-}
+};
 
-const pieceMap: Record<string, string> = {
+const pieces: Record<string, string> = {
+  p: "♟",
   r: "♜",
   n: "♞",
   b: "♝",
   q: "♛",
   k: "♚",
-  p: "♟",
+  P: "♙",
   R: "♖",
   N: "♘",
   B: "♗",
   Q: "♕",
   K: "♔",
-  P: "♙",
 };
 
 export default function ChessSquare({
@@ -27,24 +26,32 @@ export default function ChessSquare({
   col,
   piece,
   selected,
-  validMove,
   onClick,
 }: Props) {
   const isDark = (row + col) % 2 === 1;
 
+  const pieceSymbol = pieces[piece] ?? "";
+
+  const isWhite = piece === piece.toUpperCase();
+
   return (
     <div
       onClick={onClick}
-      className={`
-        w-10 h-10 flex items-center justify-center
-        ${isDark ? "bg-red-700" : "bg-white"}
-        ${selected ? "ring-4 ring-yellow-400" : ""}
-        ${validMove ? "ring-2 ring-green-400" : ""}
-        cursor-pointer
-      `}
+      className={`flex items-center justify-center text-4xl cursor-pointer
+      ${isDark ? "bg-red-700" : "bg-gray-200"}
+      ${selected ? "ring-4 ring-yellow-400" : ""}
+    `}
     >
-      <span className="text-xl select-none">
-        {piece !== "." ? pieceMap[piece] : ""}
+      <span
+        className={`select-none
+        ${
+          isWhite
+            ? "text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
+            : "text-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.6)]"
+        }
+      `}
+      >
+        {pieceSymbol}
       </span>
     </div>
   );

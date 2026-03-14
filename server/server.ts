@@ -7,104 +7,77 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
   },
+  transports: ["websocket"],
 });
 
 type Room = {
-  players: string[];
   fen: string;
+  players: string[];
 };
 
 const rooms: Record<string, Room> = {};
 
-const INITIAL_FEN =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1";
-
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
-  // Criar sala
-  socket.on("create-room", (roomId: string) => {
-    if (rooms[roomId]) {
-      socket.emit("error", "Sala já existe");
-      return;
-    }
+  socket.on("createRoom", () => {
+    const roomId = Math.random().toString(36).substring(2, 7);
 
     rooms[roomId] = {
+      fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
       players: [socket.id],
-      fen: INITIAL_FEN,
     };
 
     socket.join(roomId);
 
-    socket.emit("room-created", {
+    socket.emit("roomCreated", {
       roomId,
       color: "white",
-      fen: INITIAL_FEN,
     });
 
     console.log("Room created:", roomId);
   });
 
-  // Entrar em sala
-  socket.on("join-room", (roomId: string) => {
+  socket.on("joinRoom", (roomId: string) => {
     const room = rooms[roomId];
 
     if (!room) {
-      socket.emit("error", "Sala não existe");
+      socket.emit("errorMessage", "Sala não encontrada");
       return;
     }
 
     if (room.players.length >= 2) {
-      socket.emit("error", "Sala cheia");
+      socket.emit("errorMessage", "Sala cheia");
       return;
     }
 
     room.players.push(socket.id);
+
     socket.join(roomId);
 
-    socket.emit("room-joined", {
+    socket.emit("roomJoined", {
       roomId,
       color: "black",
       fen: room.fen,
     });
 
-    socket.to(roomId).emit("player-joined");
-
-    console.log("Player joined room:", roomId);
+    io.to(roomId).emit("playersReady");
   });
 
-  // Movimento
-  socket.on(
-    "move",
-    ({ roomId, fen }: { roomId: string; fen: string }) => {
-      const room = rooms[roomId];
+  socket.on("move", ({ roomId, fen }) => {
+    const room = rooms[roomId];
+    if (!room) return;
 
-      if (!room) return;
+    room.fen = fen;
 
-      room.fen = fen;
+    socket.to(roomId).emit("move", fen);
+  });
 
-      socket.to(roomId).emit("move", fen);
-    }
-  );
-
-  // Desconexão
   socket.on("disconnect", () => {
     console.log("Player disconnected:", socket.id);
-
-    for (const roomId in rooms) {
-      const room = rooms[roomId];
-
-      room.players = room.players.filter(
-        (id) => id !== socket.id
-      );
-
-      if (room.players.length === 0) {
-        delete rooms[roomId];
-        console.log("Room removed:", roomId);
-      }
-    }
   });
 });
 

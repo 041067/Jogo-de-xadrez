@@ -1,98 +1,112 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
-import { boardToFen, fenToBoard } from "@/utils/fen";
 import { socket } from "@/lib/socket";
 
-export default function Multiplayer() {
+export default function MultiplayerPage() {
   const [roomId, setRoomId] = useState("");
-  const [gameFen, setGameFen] = useState(
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1"
+  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [color, setColor] = useState<"white" | "black" | null>(null);
+  const [fen, setFen] = useState(
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
   );
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    socket.on("move", (fen: string) => {
-      setGameFen(fen);
+    socket.on("roomCreated", ({ roomId, color }) => {
+      console.log("Room created:", roomId);
+
+      setCurrentRoom(roomId);
+      setColor(color);
+      setReady(false);
+    });
+
+    socket.on("roomJoined", ({ roomId, color, fen }) => {
+      setCurrentRoom(roomId);
+      setColor(color);
+      setFen(fen);
+    });
+
+    socket.on("playersReady", () => {
+      setReady(true);
+    });
+
+    socket.on("move", (newFen) => {
+      setFen(newFen);
     });
 
     return () => {
+      socket.off("roomCreated");
+      socket.off("roomJoined");
+      socket.off("playersReady");
       socket.off("move");
     };
   }, []);
 
   function createRoom() {
-    const id = Math.random().toString(36).substring(2, 7);
-    setRoomId(id);
-
-    socket.emit("create-room", id);
+    socket.emit("createRoom");
   }
 
   function joinRoom() {
-    socket.emit("join-room", roomId);
+    socket.emit("joinRoom", roomId);
   }
 
-  function handleMove(
-    fr: number,
-    fc: number,
-    tr: number,
-    tc: number
-  ) {
-    const board = fenToBoard(gameFen);
-    const turn = gameFen.split(" ")[1] as "w" | "b";
+  function handleMove(newFen: string) {
+    setFen(newFen);
 
-    const newBoard = structuredClone(board);
+    if (currentRoom) {
+      socket.emit("move", {
+        roomId: currentRoom,
+        fen: newFen,
+      });
+    }
+  }
 
-    newBoard[tr][tc] = newBoard[fr][fc];
-    newBoard[fr][fc] = ".";
+  if (!currentRoom) {
+    return (
+      <div className="space-y-4">
+        <button onClick={createRoom} className="bg-blue-600 p-2 text-white">
+          Criar Sala
+        </button>
 
-    const nextTurn = turn === "w" ? "b" : "w";
+        <div>
+          <input
+            placeholder="Código da sala"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            className="border p-2"
+          />
 
-    const boardStrings = newBoard.map((r) => r.join(""));
+          <button
+            onClick={joinRoom}
+            className="bg-green-600 p-2 text-white ml-2"
+          >
+            Entrar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    const newFen = boardToFen(boardStrings, nextTurn);
+  if (!ready) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl">Sala criada</h2>
 
-    setGameFen(newFen);
+        <p>
+          Código da sala: <b>{currentRoom}</b>
+        </p>
 
-    socket.emit("move", {
-      roomId,
-      fen: newFen,
-    });
+        <p>Aguardando outro jogador entrar...</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
+      <p>Sala: {currentRoom}</p>
+      <p>Você é: {color}</p>
 
-      <h1 className="text-2xl font-bold">
-        Multiplayer
-      </h1>
-
-      <div className="flex gap-2">
-        <input
-          className="border p-2"
-          placeholder="Room ID"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-        />
-
-        <button
-          className="bg-blue-600 text-white px-4 py-2"
-          onClick={createRoom}
-        >
-          Criar Sala
-        </button>
-
-        <button
-          className="bg-green-600 text-white px-4 py-2"
-          onClick={joinRoom}
-        >
-          Entrar
-        </button>
-      </div>
-
-      <ChessBoard
-        gameFen={gameFen}
-        onMove={handleMove}
-      />
-
+      <ChessBoard gameFen={fen} playerColor={color!} onMove={handleMove} />
     </div>
   );
 }

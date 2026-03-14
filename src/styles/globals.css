@@ -18,3 +18,8 @@ body {
   background: var(--bg-main);
   color: var(--text-main);
 }
+
+.p-2 {
+  padding: 0.5rem;
+  color: black;
+} 
