@@ -3,7 +3,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-neutral-950 border-r border-neutral-800 p-6 flex flex-col gap-8">
       {/* Logo */}
       <div className="text-2xl font-bold text-red-600 tracking-wide">
-        ♟ Chess SENAI
+        ♟ SESI SENAI
       </div>
 
       {/* Navegação */}

@@ -15,7 +15,7 @@ const io = new Server(httpServer, {
 
 type Room = {
   fen: string;
-  players: string[];
+  players: { id: string; color: "white" | "black" }[];
 };
 
 const rooms: Record<string, Room> = {};
@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
 
     rooms[roomId] = {
       fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
-      players: [socket.id],
+      players: [{ id: socket.id, color: "white" }],
     };
 
     socket.join(roomId);
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    room.players.push(socket.id);
+    room.players.push({ id: socket.id, color: "black" });
 
     socket.join(roomId);
 
@@ -71,9 +71,27 @@ io.on("connection", (socket) => {
     const room = rooms[roomId];
     if (!room) return;
 
-    room.fen = fen;
+    // Valida se o socket que fez o movimento é um jogador válido
+    const player = room.players.find((p) => p.id === socket.id);
+    if (!player) {
+      console.log("Movimento rejeitado: jogador não pertence à sala");
+      return;
+    }
 
-    socket.to(roomId).emit("move", fen);
+    // Valida se é a vez do jogador
+    const currentTurn = room.fen.split(" ")[1]; // "w" ou "b"
+    const playerColor = player.color === "white" ? "w" : "b";
+
+    if (currentTurn !== playerColor) {
+      console.log(
+        `Movimento rejeitado: não é a vez de ${player.color}. Turno atual: ${currentTurn}`,
+      );
+      socket.emit("errorMessage", "Não é a sua vez");
+      return;
+    }
+
+    room.fen = fen;
+    io.to(roomId).emit("move", fen);
   });
 
   socket.on("disconnect", () => {

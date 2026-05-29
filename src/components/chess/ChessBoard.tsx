@@ -21,21 +21,41 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
   function handleClick(r: number, c: number) {
     const key = `${r}-${c}`;
 
+    // Valida se é o turno do jogador
     if (turn !== playerColor) return;
+
+    if (selected === key) {
+      setSelected(null);
+      return;
+    }
 
     if (!selected) {
       const piece = board[r][c];
+      
+      // Valida se a peça existe
       if (piece === ".") return;
-
-      const isWhite = piece === piece.toUpperCase();
-      if (playerColor === "white" && !isWhite) return;
-      if (playerColor === "black" && isWhite) return;
-
+      
+      // Valida se a peça pertence ao jogador (maiúsculas = white, minúsculas = black)
+      const isPieceWhite = piece === piece.toUpperCase();
+      const isPlayerWhite = playerColor === "white";
+      
+      if (isPieceWhite !== isPlayerWhite) return;
+      
       setSelected(key);
       return;
     }
 
     const [sr, sc] = selected.split("-").map(Number);
+    const selectedPiece = board[sr][sc];
+
+    // Validação final: garante que a peça selecionada ainda pertence ao jogador
+    const isPieceWhite = selectedPiece === selectedPiece.toUpperCase();
+    const isPlayerWhite = playerColor === "white";
+    
+    if (isPieceWhite !== isPlayerWhite) {
+      setSelected(null);
+      return;
+    }
 
     const newBoard = structuredClone(board);
 
@@ -55,7 +75,7 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
     <div>
       <p>Turno: {turn}</p>
 
-      <div className="grid grid-cols-8 w-[320px] h-[320px] border-5 border-red-700">
+      <div className="grid grid-cols-8 grid-rows-8 w-[480px] h-[480px] border-4 border-red-700">
         {board.map((row, r) =>
           row.map((piece, c) => (
             <ChessSquare
@@ -66,7 +86,7 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
               selected={selected === `${r}-${c}`}
               onClick={() => handleClick(r, c)}
             />
-          ))
+          )),
         )}
       </div>
     </div>
