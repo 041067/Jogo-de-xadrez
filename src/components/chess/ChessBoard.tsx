@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ChessSquare from "./ChessSquare";
 import { fenToBoard, boardToFen } from "@/utils/fen";
+import { isValidMove } from "@/utils/chessRules";
 
 type Props = {
   gameFen: string;
@@ -53,6 +54,13 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
     const isPlayerWhite = playerColor === "white";
     
     if (isPieceWhite !== isPlayerWhite) {
+      setSelected(null);
+      return;
+    }
+
+    // Validação de regras de xadrez - verifica se o movimento é legal
+    if (!isValidMove(board, sr, sc, r, c, turn)) {
+      console.log("Movimento inválido segundo as regras de xadrez");
       setSelected(null);
       return;
     }

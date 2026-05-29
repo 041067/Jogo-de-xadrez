@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import GameCard from "@/components/GameCard";
+import ChessGraffiti from "@/components/ChessGraffiti";
 
 export default function Home() {
   const router = useRouter();
@@ -28,6 +29,11 @@ export default function Home() {
           description="Entre em uma sala existente usando um código."
           onClick={() => router.push("/multiplayer")}
         />
+      </div>
+
+      {/* Graffiti section */}
+      <div className="mt-16">
+        <ChessGraffiti />
       </div>
     </div>
   );
