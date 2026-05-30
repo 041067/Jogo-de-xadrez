@@ -1,7 +1,7 @@
 import { isValidMove } from "./chessRules";
 
 export function getValidMoves(
-  board: string[],
+  board: string[][],
   r: number,
   c: number,
   turn: "white" | "black"

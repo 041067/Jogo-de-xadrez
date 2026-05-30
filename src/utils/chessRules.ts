@@ -11,7 +11,7 @@ export function sameColor(a: string, b: string) {
 }
 
 function isPathClear(
-  board: string[],
+  board: string[][],
   fromR: number,
   fromC: number,
   toR: number,
@@ -34,7 +34,7 @@ function isPathClear(
 }
 
 export function isValidMove(
-  board: string[],
+  board: string[][],
   fromR: number,
   fromC: number,
   toR: number,
