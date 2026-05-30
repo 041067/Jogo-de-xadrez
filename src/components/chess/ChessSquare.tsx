@@ -1,4 +1,4 @@
-import ChessPiece from "./ChessPiece";
+import Image from "next/image";
 
 type Props = {
   row: number;
@@ -8,6 +8,20 @@ type Props = {
   onClick: () => void;
 };
 
+const pieceMap: Record<string, string> = {
+  p: "/pieces/bp.svg",
+  r: "/pieces/br.svg",
+  n: "/pieces/bn.svg",
+  b: "/pieces/bb.svg",
+  q: "/pieces/bq.svg",
+  k: "/pieces/bk.svg",
+  P: "/pieces/wp.svg",
+  R: "/pieces/wr.svg",
+  N: "/pieces/wn.svg",
+  B: "/pieces/wb.svg",
+  Q: "/pieces/wq.svg",
+  K: "/pieces/wk.svg",
+};
 
 export default function ChessSquare({
   row,
@@ -21,12 +35,31 @@ export default function ChessSquare({
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-center w-full h-full cursor-pointer
+      className={`
+        flex items-center justify-center
+        w-full h-full cursor-pointer
+        transition-all duration-150
         ${isDark ? "bg-red-700" : "bg-gray-200"}
         ${selected ? "ring-4 ring-yellow-400" : ""}
       `}
     >
-      {piece !== "." && <ChessPiece piece={piece} />}
+      {piece !== "." && (
+        <Image
+          src={pieceMap[piece]}
+          alt={piece}
+          width={64}
+          height={64}
+          priority
+          draggable={false}
+          className="
+            pointer-events-none
+            select-none
+            transition-transform
+            duration-150
+            hover:scale-105
+          "
+        />
+      )}
     </div>
   );
 }
