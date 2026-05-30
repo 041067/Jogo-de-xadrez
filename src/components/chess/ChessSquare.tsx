@@ -9,18 +9,18 @@ type Props = {
 };
 
 const pieceMap: Record<string, string> = {
-  p: "/pieces/bp.svg",
-  r: "/pieces/br.svg",
-  n: "/pieces/bn.svg",
-  b: "/pieces/bb.svg",
-  q: "/pieces/bq.svg",
-  k: "/pieces/bk.svg",
-  P: "/pieces/wp.svg",
-  R: "/pieces/wr.svg",
-  N: "/pieces/wn.svg",
-  B: "/pieces/wb.svg",
-  Q: "/pieces/wq.svg",
-  K: "/pieces/wk.svg",
+  p: "/pieces/bP.svg",
+  r: "/pieces/bR.svg",
+  n: "/pieces/bN.svg",
+  b: "/pieces/bB.svg",
+  q: "/pieces/bQ.svg",
+  k: "/pieces/bK.svg",
+  P: "/pieces/wP.svg",
+  R: "/pieces/wR.svg",
+  N: "/pieces/wN.svg",
+  B: "/pieces/wB.svg",
+  Q: "/pieces/wQ.svg",
+  K: "/pieces/wK.svg",
 };
 
 export default function ChessSquare({
