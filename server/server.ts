@@ -18,6 +18,11 @@ const io = new Server(httpServer, {
 type Room = {
   fen: string;
   players: { id: string; color: "white" | "black" }[];
+  whiteTime: number; // tempo em segundos
+  blackTime: number;
+  lastMoveTime: number; // timestamp do último movimento
+  timerInterval?: NodeJS.Timeout;
+  gameStarted: boolean;
 };
 
 const rooms: Record<string, Room> = {};
@@ -168,12 +173,16 @@ function validateMovement(oldFen: string, newFen: string): boolean {
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
-  socket.on("createRoom", () => {
+  socket.on("createRoom", ({ initialTime } = { initialTime: 600 }) => {
     const roomId = Math.random().toString(36).substring(2, 7);
 
     rooms[roomId] = {
       fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
       players: [{ id: socket.id, color: "white" }],
+      whiteTime: initialTime,
+      blackTime: initialTime,
+      lastMoveTime: Date.now(),
+      gameStarted: false,
     };
 
     socket.join(roomId);
@@ -181,6 +190,8 @@ io.on("connection", (socket) => {
     socket.emit("roomCreated", {
       roomId,
       color: "white",
+      whiteTime: initialTime,
+      blackTime: initialTime,
     });
 
     console.log("Room created:", roomId);
@@ -200,6 +211,7 @@ io.on("connection", (socket) => {
     }
 
     room.players.push({ id: socket.id, color: "black" });
+    room.gameStarted = true;
 
     socket.join(roomId);
 
@@ -207,10 +219,63 @@ io.on("connection", (socket) => {
       roomId,
       color: "black",
       fen: room.fen,
+      whiteTime: room.whiteTime,
+      blackTime: room.blackTime,
     });
 
-    io.to(roomId).emit("playersReady");
+    io.to(roomId).emit("playersReady", {
+      whiteTime: room.whiteTime,
+      blackTime: room.blackTime,
+    });
+
+    // Inicia o timer no servidor
+    startRoomTimer(roomId);
   });
+
+  function startRoomTimer(roomId: string) {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    // Limpa interval anterior se existir
+    if (room.timerInterval) {
+      clearInterval(room.timerInterval);
+    }
+
+    room.timerInterval = setInterval(() => {
+      if (!room.gameStarted) {
+        clearInterval(room.timerInterval);
+        return;
+      }
+
+      const currentTurn = room.fen.split(" ")[1] as "w" | "b";
+
+      if (currentTurn === "w") {
+        room.blackTime = Math.max(0, room.blackTime - 1);
+
+        if (room.blackTime === 0) {
+          io.to(roomId).emit("timeUp", { color: "black" });
+          clearInterval(room.timerInterval);
+          room.gameStarted = false;
+          return;
+        }
+      } else {
+        room.whiteTime = Math.max(0, room.whiteTime - 1);
+
+        if (room.whiteTime === 0) {
+          io.to(roomId).emit("timeUp", { color: "white" });
+          clearInterval(room.timerInterval);
+          room.gameStarted = false;
+          return;
+        }
+      }
+
+      // Envia sincronização de tempo a cada segundo
+      io.to(roomId).emit("timeSync", {
+        whiteTime: room.whiteTime,
+        blackTime: room.blackTime,
+      });
+    }, 1000);
+  }
 
   socket.on("move", ({ roomId, fen }) => {
     const room = rooms[roomId];
@@ -247,11 +312,39 @@ io.on("connection", (socket) => {
     }
 
     room.fen = fen;
+    room.lastMoveTime = Date.now();
+
     io.to(roomId).emit("move", fen);
+    io.to(roomId).emit("timeSync", {
+      whiteTime: room.whiteTime,
+      blackTime: room.blackTime,
+    });
   });
 
   socket.on("disconnect", () => {
     console.log("Player disconnected:", socket.id);
+
+    // Encontra e limpa a sala se o jogador era o proprietário
+    for (const roomId in rooms) {
+      const room = rooms[roomId];
+      const playerIndex = room.players.findIndex((p) => p.id === socket.id);
+
+      if (playerIndex !== -1) {
+        room.players.splice(playerIndex, 1);
+
+        if (room.players.length === 0) {
+          // Limpa o timer se não houver mais jogadores
+          if (room.timerInterval) {
+            clearInterval(room.timerInterval);
+          }
+          delete rooms[roomId];
+          console.log("Room deleted:", roomId);
+        } else {
+          // Notifica o outro jogador que o adversário desconectou
+          io.to(roomId).emit("opponentDisconnected");
+        }
+      }
+    }
   });
 });
 
