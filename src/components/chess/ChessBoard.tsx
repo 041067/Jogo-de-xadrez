@@ -80,22 +80,24 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
   }
 
   return (
-    <div>
-      <p>Turno: {turn}</p>
+    <div className="w-full flex flex-col items-center gap-4">
+      <p className="text-lg font-semibold">Turno: <span className="text-red-600">{turn === 'white' ? 'Brancas' : 'Pretas'}</span></p>
 
-      <div className="grid grid-cols-8 grid-rows-8 w-[480px] h-[480px] border-4 border-red-700">
-        {board.map((row, r) =>
-          row.map((piece, c) => (
-            <ChessSquare
-              key={`${r}-${c}`}
-              row={r}
-              col={c}
-              piece={piece}
-              selected={selected === `${r}-${c}`}
-              onClick={() => handleClick(r, c)}
-            />
-          )),
-        )}
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl aspect-square">
+        <div className="grid grid-cols-8 grid-rows-8 w-full h-full border-4 border-red-700 shadow-lg">
+          {board.map((row, r) =>
+            row.map((piece, c) => (
+              <ChessSquare
+                key={`${r}-${c}`}
+                row={r}
+                col={c}
+                piece={piece}
+                selected={selected === `${r}-${c}`}
+                onClick={() => handleClick(r, c)}
+              />
+            )),
+          )}
+        </div>
       </div>
     </div>
   );

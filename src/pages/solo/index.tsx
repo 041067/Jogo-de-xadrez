@@ -106,5 +106,15 @@ export default function SoloPage() {
     setFen(newFen);
   }
 
-  return <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />;
+  return (
+    <div className="w-full flex flex-col items-center justify-center gap-6">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center">
+        Jogo Solo
+      </h1>
+      
+      <div className="w-full flex justify-center px-2">
+        <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />
+      </div>
+    </div>
+  );
 }

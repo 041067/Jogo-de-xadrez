@@ -6,12 +6,16 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">
-        Escolha seu modo de jogo
+    <div className="w-full min-h-screen flex flex-col items-center justify-start px-4">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 sm:mb-8 text-center mt-6 sm:mt-10">
+        ♟️ Chess Masters
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <p className="text-lg sm:text-xl text-gray-400 text-center mb-8 sm:mb-12 max-w-2xl">
+        Escolha seu modo de jogo e comece a jogar
+      </p>
+
+      <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12 sm:mb-16">
         <GameCard
           title="Jogo Solo"
           description="Treine contra o computador e aprimore sua estratégia."
@@ -32,7 +36,7 @@ export default function Home() {
       </div>
 
       {/* Graffiti section */}
-      <div className="mt-16">
+      <div className="w-full mt-8 sm:mt-12 px-4">
         <ChessGraffiti />
       </div>
     </div>

@@ -13,13 +13,46 @@
   --accent: #dc2626; /* vermelho xadrez */
 }
 
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html,
 body {
   background: var(--bg-main);
   color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Responsive utility classes */
+@media (max-width: 640px) {
+  main {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Chess board responsiveness */
+@supports (aspect-ratio: 1) {
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
 }
 
 .p-2 {
   padding: 0.5rem;
   color: black;
-} 
+}

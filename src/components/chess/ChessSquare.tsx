@@ -39,26 +39,30 @@ export default function ChessSquare({
         flex items-center justify-center
         w-full h-full cursor-pointer
         transition-all duration-150
+        relative
         ${isDark ? "bg-red-700" : "bg-gray-200"}
-        ${selected ? "ring-4 ring-yellow-400" : ""}
+        ${selected ? "ring-4 ring-yellow-400 ring-inset" : ""}
       `}
     >
       {piece !== "." && (
-        <Image
-          src={pieceMap[piece]}
-          alt={piece}
-          width={64}
-          height={64}
-          priority
-          draggable={false}
-          className="
-            pointer-events-none
-            select-none
-            transition-transform
-            duration-150
-            hover:scale-105
-          "
-        />
+        <div className="relative w-4/5 h-4/5">
+          <Image
+            src={pieceMap[piece]}
+            alt={piece}
+            fill
+            sizes="(max-width: 640px) 40px, (max-width: 768px) 50px, (max-width: 1024px) 70px, 100px"
+            priority
+            draggable={false}
+            className="
+              pointer-events-none
+              select-none
+              transition-transform
+              duration-150
+              hover:scale-110
+              object-contain
+            "
+          />
+        </div>
       )}
     </div>
   );
