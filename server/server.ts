@@ -7,10 +7,12 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://jogo-de-xadrez-xi.vercel.app",
+    ],
     methods: ["GET", "POST"],
   },
-  transports: ["websocket"],
 });
 
 type Room = {
@@ -46,7 +48,7 @@ function isPathClear(
   fromR: number,
   fromC: number,
   toR: number,
-  toC: number
+  toC: number,
 ): boolean {
   const stepR = Math.sign(toR - fromR);
   const stepC = Math.sign(toC - fromC);
@@ -69,7 +71,7 @@ function isValidChessMove(
   fromC: number,
   toR: number,
   toC: number,
-  turn: "w" | "b"
+  turn: "w" | "b",
 ): boolean {
   const piece = board[fromR]?.[fromC];
   const target = board[toR]?.[toC];
@@ -236,10 +238,11 @@ io.on("connection", (socket) => {
 
     // Valida se o movimento segue as regras de xadrez
     if (!validateMovement(room.fen, fen)) {
-      console.log(
-        "Movimento rejeitado: não segue as regras de xadrez",
+      console.log("Movimento rejeitado: não segue as regras de xadrez");
+      socket.emit(
+        "errorMessage",
+        "Movimento inválido - não segue as regras de xadrez",
       );
-      socket.emit("errorMessage", "Movimento inválido - não segue as regras de xadrez");
       return;
     }
 
@@ -252,6 +255,8 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(4000, () => {
-  console.log("♟️ Multiplayer server running on port 4000");
+const PORT = process.env.PORT || 4000;
+
+httpServer.listen(PORT, () => {
+  console.log(`♟️ Multiplayer server running on port ${PORT}`);
 });

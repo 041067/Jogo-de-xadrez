@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "server": "ts-node server/server.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -31,4 +32,5 @@
     "ts-node": "^10.9.2",
     "typescript": "^5"
   }
+
 }

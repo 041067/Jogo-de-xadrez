@@ -1,8 +1,14 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://localhost:4000", {
-  transports: ["websocket"],
-});
+console.log("SOCKET URL:", process.env.NEXT_PUBLIC_SOCKET_URL);
+
+export const socket = io(
+  process.env.NEXT_PUBLIC_SOCKET_URL!,
+    {
+    transports: ["websocket"],
+    }
+);
+
 
 socket.on("connect", () => {
   console.log("Connected:", socket.id);
