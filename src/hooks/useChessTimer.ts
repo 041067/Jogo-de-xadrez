@@ -9,11 +9,11 @@ type TimerState = {
 export function useChessTimer(
   initialTime: number = 600, // 10 minutos por padrão
 ) {
-  const [timerState, setTimerState] = useState<TimerState>({
+  const [timerState, setTimerState] = useState<TimerState>(() => ({
     whiteTime: initialTime,
     blackTime: initialTime,
     lastMoveTime: Date.now(),
-  });
+  }));
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -29,14 +29,14 @@ export function useChessTimer(
           const newState = { ...prev };
 
           if (turn === "white") {
-            newState.blackTime = Math.max(0, prev.blackTime - 1);
-            if (newState.blackTime === 0) {
+            newState.whiteTime = Math.max(0, prev.whiteTime - 1);
+            if (newState.whiteTime === 0) {
               clearInterval(intervalRef.current!);
               return newState;
             }
           } else {
-            newState.whiteTime = Math.max(0, prev.whiteTime - 1);
-            if (newState.whiteTime === 0) {
+            newState.blackTime = Math.max(0, prev.blackTime - 1);
+            if (newState.blackTime === 0) {
               clearInterval(intervalRef.current!);
               return newState;
             }

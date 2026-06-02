@@ -51,18 +51,18 @@ export default function ChessClock({
 
     const interval = setInterval(() => {
       if (turn === "white") {
-        setDisplayBlackTime((prev) => {
-          const newTime = Math.max(0, prev - 1);
-          if (newTime === 0 && onTimeUp) {
-            onTimeUp("black");
-          }
-          return newTime;
-        });
-      } else {
         setDisplayWhiteTime((prev) => {
           const newTime = Math.max(0, prev - 1);
           if (newTime === 0 && onTimeUp) {
             onTimeUp("white");
+          }
+          return newTime;
+        });
+      } else {
+        setDisplayBlackTime((prev) => {
+          const newTime = Math.max(0, prev - 1);
+          if (newTime === 0 && onTimeUp) {
+            onTimeUp("black");
           }
           return newTime;
         });

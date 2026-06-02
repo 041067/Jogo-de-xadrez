@@ -250,19 +250,19 @@ io.on("connection", (socket) => {
       const currentTurn = room.fen.split(" ")[1] as "w" | "b";
 
       if (currentTurn === "w") {
-        room.blackTime = Math.max(0, room.blackTime - 1);
+        room.whiteTime = Math.max(0, room.whiteTime - 1);
 
-        if (room.blackTime === 0) {
-          io.to(roomId).emit("timeUp", { color: "black" });
+        if (room.whiteTime === 0) {
+          io.to(roomId).emit("timeUp", { color: "white" });
           clearInterval(room.timerInterval);
           room.gameStarted = false;
           return;
         }
       } else {
-        room.whiteTime = Math.max(0, room.whiteTime - 1);
+        room.blackTime = Math.max(0, room.blackTime - 1);
 
-        if (room.whiteTime === 0) {
-          io.to(roomId).emit("timeUp", { color: "white" });
+        if (room.blackTime === 0) {
+          io.to(roomId).emit("timeUp", { color: "black" });
           clearInterval(room.timerInterval);
           room.gameStarted = false;
           return;

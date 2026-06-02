@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 type Props = {
   isOpen: boolean;
   winner: "white" | "black";
@@ -15,17 +13,7 @@ export default function ChampionModal({
   onPlayAgain,
   onBackToMenu,
 }: Props) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
-  }, [isOpen]);
-
-  if (!isVisible) return null;
+  if (!isOpen) return null;
 
   const winnerName = winner === "white" ? "⚪ Brancas" : "⚫ Pretas";
   const winnerColor =

@@ -1,22 +1,43 @@
 import { useState, useEffect } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
 import ChessClock from "@/components/chess/ChessClock";
+import ChampionModal from "@/components/ChampionModal";
 import { socket } from "@/lib/socket";
 
 const DEFAULT_TIME = 600; // 10 minutos
+const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+
+type PlayerColor = "white" | "black";
+
+type GameOverEvent = {
+  type: "gameOver";
+  winner: PlayerColor;
+  reason: string;
+  motivo: "timeout" | "checkmate" | "resignation";
+};
+
+function getOpponentColor(color: PlayerColor): PlayerColor {
+  return color === "white" ? "black" : "white";
+}
+
+function getTimeoutReason(color: PlayerColor): string {
+  return color === "white"
+    ? "Tempo das Brancas acabou!"
+    : "Tempo das Pretas acabou!";
+}
 
 export default function MultiplayerPage() {
   const [roomId, setRoomId] = useState("");
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
-  const [color, setColor] = useState<"white" | "black" | null>(null);
-  const [fen, setFen] = useState(
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
-  );
+  const [color, setColor] = useState<PlayerColor | null>(null);
+  const [fen, setFen] = useState(INITIAL_FEN);
   const [whiteTime, setWhiteTime] = useState(DEFAULT_TIME);
   const [blackTime, setBlackTime] = useState(DEFAULT_TIME);
   const [ready, setReady] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [gameOverReason, setGameOverReason] = useState("");
+  const [gameOverEvent, setGameOverEvent] = useState<GameOverEvent | null>(null);
+  const [winner, setWinner] = useState<PlayerColor | null>(null);
   const [selectedTime, setSelectedTime] = useState(DEFAULT_TIME);
 
   useEffect(() => {
@@ -25,9 +46,14 @@ export default function MultiplayerPage() {
 
       setCurrentRoom(roomId);
       setColor(color);
+      setFen(INITIAL_FEN);
       setWhiteTime(whiteTime);
       setBlackTime(blackTime);
       setReady(false);
+      setGameOver(false);
+      setGameOverReason("");
+      setGameOverEvent(null);
+      setWinner(null);
     });
 
     socket.on("roomJoined", ({ roomId, color, fen, whiteTime, blackTime }) => {
@@ -36,6 +62,10 @@ export default function MultiplayerPage() {
       setFen(fen);
       setWhiteTime(whiteTime);
       setBlackTime(blackTime);
+      setGameOver(false);
+      setGameOverReason("");
+      setGameOverEvent(null);
+      setWinner(null);
     });
 
     socket.on("playersReady", ({ whiteTime, blackTime }) => {
@@ -53,16 +83,26 @@ export default function MultiplayerPage() {
       setBlackTime(blackTime);
     });
 
-    socket.on("timeUp", ({ color }) => {
+    socket.on("timeUp", ({ color }: { color: PlayerColor }) => {
+      const event: GameOverEvent = {
+        type: "gameOver",
+        winner: getOpponentColor(color),
+        reason: getTimeoutReason(color),
+        motivo: "timeout",
+      };
+
       setGameOver(true);
-      setGameOverReason(
-        color === "white" ? "Tempo das Brancas acabou!" : "Tempo das Pretas acabou!"
-      );
+      setGameOverReason(event.reason);
+      setWinner(event.winner);
+      setGameOverEvent(event);
+      window.dispatchEvent(new CustomEvent("chessGameOver", { detail: event }));
     });
 
     socket.on("opponentDisconnected", () => {
       setGameOver(true);
       setGameOverReason("Seu adversário desconectou!");
+      setWinner(null);
+      setGameOverEvent(null);
     });
 
     socket.on("errorMessage", (message) => {
@@ -175,7 +215,7 @@ export default function MultiplayerPage() {
 
   const turn = fen.split(" ")[1] === "w" ? "white" : "black";
 
-  if (gameOver) {
+  if (gameOver && (!winner || !gameOverEvent)) {
     return (
       <div className="w-full max-w-md mx-auto space-y-6 text-center">
         <h2 className="text-3xl font-bold text-red-600">Jogo Finalizado</h2>
@@ -195,28 +235,40 @@ export default function MultiplayerPage() {
   }
 
   return (
-    <div className="w-full flex flex-col items-center justify-center gap-4 sm:gap-6">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center">
-        Partida em Andamento
-      </h1>
-
-      <div className="bg-gray-900 p-4 rounded-lg space-y-2 w-full max-w-sm text-center text-sm sm:text-base">
-        <p className="text-gray-400">Sala: <span className="text-white font-mono">{currentRoom}</span></p>
-        <p className="text-gray-400">Você é: <span className="text-red-600 font-bold uppercase">{color === 'white' ? 'Brancas' : 'Pretas'}</span></p>
-      </div>
-
-      <div className="w-full max-w-sm px-2">
-        <ChessClock
-          whiteTime={whiteTime}
-          blackTime={blackTime}
-          turn={turn}
-          isRunning={true}
+    <>
+      {winner && gameOverEvent && (
+        <ChampionModal
+          isOpen={gameOver}
+          winner={winner}
+          reason={gameOverEvent.reason}
+          onPlayAgain={() => window.location.reload()}
+          onBackToMenu={() => window.location.reload()}
         />
-      </div>
+      )}
 
-      <div className="w-full flex justify-center px-2">
-        <ChessBoard gameFen={fen} playerColor={color!} onMove={handleMove} />
+      <div className="w-full flex flex-col items-center justify-center gap-4 sm:gap-6">
+        <h1 className="text-3xl sm:text-4xl font-bold text-center">
+          Partida em Andamento
+        </h1>
+
+        <div className="bg-gray-900 p-4 rounded-lg space-y-2 w-full max-w-sm text-center text-sm sm:text-base">
+          <p className="text-gray-400">Sala: <span className="text-white font-mono">{currentRoom}</span></p>
+          <p className="text-gray-400">Você é: <span className="text-red-600 font-bold uppercase">{color === 'white' ? 'Brancas' : 'Pretas'}</span></p>
+        </div>
+
+        <div className="w-full max-w-sm px-2">
+          <ChessClock
+            whiteTime={whiteTime}
+            blackTime={blackTime}
+            turn={turn}
+            isRunning={!gameOver}
+          />
+        </div>
+
+        <div className="w-full flex justify-center px-2">
+          <ChessBoard gameFen={fen} playerColor={color!} onMove={handleMove} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
