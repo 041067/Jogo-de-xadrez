@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
 import ChessClock from "@/components/chess/ChessClock";
+import ChampionModal from "@/components/ChampionModal";
 import { fenToBoard, boardToFen } from "@/utils/fen";
 import { getValidMoves } from "@/utils/getValidMoves";
 
@@ -11,6 +12,13 @@ type Move = {
   sc: number;
   tr: number;
   tc: number;
+};
+
+type GameOverEvent = {
+  type: "gameOver";
+  winner: "white" | "black";
+  reason: string;
+  motivo: "timeout" | "checkmate" | "resignation";
 };
 
 function getPieceValue(piece: string): number {
@@ -56,6 +64,8 @@ export default function SoloPage() {
   const [whiteTime, setWhiteTime] = useState(DEFAULT_TIME);
   const [blackTime, setBlackTime] = useState(DEFAULT_TIME);
   const [gameOverReason, setGameOverReason] = useState("");
+  const [gameOverEvent, setGameOverEvent] = useState<GameOverEvent | null>(null);
+  const [winner, setWinner] = useState<"white" | "black" | null>(null);
   
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -70,8 +80,21 @@ export default function SoloPage() {
         if (turn === "white") {
           const newTime = Math.max(0, prev - 1);
           if (newTime === 0) {
+            // Brancas perderam por timeout - Pretas vencem
+            const event: GameOverEvent = {
+              type: "gameOver",
+              winner: "black",
+              reason: "Tempo das Brancas acabou! ⏰",
+              motivo: "timeout",
+            };
             setGameState("gameOver");
             setGameOverReason("Tempo das Brancas acabou!");
+            setWinner("black");
+            setGameOverEvent(event);
+            // Emitir evento para analytics/logging
+            window.dispatchEvent(
+              new CustomEvent("chessGameOver", { detail: event })
+            );
           }
           return newTime;
         }
@@ -82,8 +105,21 @@ export default function SoloPage() {
         if (turn === "black") {
           const newTime = Math.max(0, prev - 1);
           if (newTime === 0) {
+            // Pretas perderam por timeout - Brancas vencem
+            const event: GameOverEvent = {
+              type: "gameOver",
+              winner: "white",
+              reason: "Tempo das Pretas acabou! ⏰",
+              motivo: "timeout",
+            };
             setGameState("gameOver");
             setGameOverReason("Tempo das Pretas acabou!");
+            setWinner("white");
+            setGameOverEvent(event);
+            // Emitir evento para analytics/logging
+            window.dispatchEvent(
+              new CustomEvent("chessGameOver", { detail: event })
+            );
           }
           return newTime;
         }
@@ -103,9 +139,15 @@ export default function SoloPage() {
     setBlackTime(selectedTime);
     setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w");
     setGameState("playing");
+    setWinner(null);
+    setGameOverEvent(null);
+    setGameOverReason("");
   }
 
   function handleMove(newFen: string) {
+    // Bloquear movimentos se o jogo já acabou
+    if (gameState !== "playing") return;
+    
     setFen(newFen);
 
     setTimeout(() => {
@@ -201,43 +243,43 @@ export default function SoloPage() {
     );
   }
 
-  if (gameState === "gameOver") {
-    return (
-      <div className="w-full max-w-md mx-auto space-y-6 text-center">
-        <h2 className="text-3xl font-bold text-red-600">Jogo Finalizado</h2>
+  return (
+    <>
+      {/* Modal de Campeão */}
+      {winner && gameOverEvent && (
+        <ChampionModal
+          isOpen={gameState === "gameOver"}
+          winner={winner}
+          reason={gameOverEvent.reason}
+          onPlayAgain={startGame}
+          onBackToMenu={() => {
+            setGameState("setup");
+            setWinner(null);
+            setGameOverEvent(null);
+            setGameOverReason("");
+          }}
+        />
+      )}
 
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <p className="text-xl text-white">{gameOverReason}</p>
+      {/* Tela de Jogo */}
+      <div className="w-full flex flex-col items-center justify-center gap-4 sm:gap-6">
+        <h1 className="text-3xl sm:text-4xl font-bold text-center">
+          Jogo Solo
+        </h1>
+
+        <div className="w-full max-w-sm px-2">
+          <ChessClock
+            whiteTime={whiteTime}
+            blackTime={blackTime}
+            turn={turn}
+            isRunning={gameState === "playing"}
+          />
         </div>
 
-        <button
-          onClick={() => setGameState("setup")}
-          className="w-full bg-blue-600 hover:bg-blue-700 p-3 text-white font-semibold rounded-lg transition-colors"
-        >
-          Voltar ao Menu
-        </button>
+        <div className="w-full flex justify-center px-2">
+          <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />
+        </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="w-full flex flex-col items-center justify-center gap-4 sm:gap-6">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center">
-        Jogo Solo
-      </h1>
-
-      <div className="w-full max-w-sm px-2">
-        <ChessClock
-          whiteTime={whiteTime}
-          blackTime={blackTime}
-          turn={turn}
-          isRunning={gameState === "playing"}
-        />
-      </div>
-
-      <div className="w-full flex justify-center px-2">
-        <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />
-      </div>
-    </div>
+    </>
   );
 }
