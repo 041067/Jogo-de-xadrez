@@ -5,7 +5,7 @@ import { isValidMove } from "@/utils/chessRules";
 
 type Props = {
   gameFen: string;
-  playerColor: "white" | "black";
+  playerColor: "white" | "black" | "both";
   onMove: (fen: string) => void;
 };
 
@@ -18,12 +18,14 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
   }, [gameFen]);
 
   const turn = gameFen.split(" ")[1] === "w" ? "white" : "black";
+  const activeColor = playerColor === "both" ? turn : playerColor;
+  const canMoveCurrentTurn = playerColor === "both" || turn === playerColor;
 
   function handleClick(r: number, c: number) {
     const key = `${r}-${c}`;
 
     // Valida se é o turno do jogador
-    if (turn !== playerColor) return;
+    if (!canMoveCurrentTurn) return;
 
     if (selected === key) {
       setSelected(null);
@@ -38,7 +40,7 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
       
       // Valida se a peça pertence ao jogador (maiúsculas = white, minúsculas = black)
       const isPieceWhite = piece === piece.toUpperCase();
-      const isPlayerWhite = playerColor === "white";
+      const isPlayerWhite = activeColor === "white";
       
       if (isPieceWhite !== isPlayerWhite) return;
       
@@ -51,7 +53,7 @@ export default function ChessBoard({ gameFen, playerColor, onMove }: Props) {
 
     // Validação final: garante que a peça selecionada ainda pertence ao jogador
     const isPieceWhite = selectedPiece === selectedPiece.toUpperCase();
-    const isPlayerWhite = playerColor === "white";
+    const isPlayerWhite = activeColor === "white";
     
     if (isPieceWhite !== isPlayerWhite) {
       setSelected(null);

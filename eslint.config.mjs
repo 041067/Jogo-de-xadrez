@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "public/stockfish/**",
     "next-env.d.ts",
     "**/*.css", // Adicione esta linha
   ]),

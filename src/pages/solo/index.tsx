@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
 import ChessClock from "@/components/chess/ChessClock";
 import ChampionModal from "@/components/ChampionModal";
-import { fenToBoard, boardToFen } from "@/utils/fen";
-import { getValidMoves } from "@/utils/getValidMoves";
+import {
+  analyzePosition,
+  cancelStockfishAnalysis,
+  type StockfishAnalysis,
+} from "@/services/stockfish";
 
 const DEFAULT_TIME = 600; // 10 minutos
-
-type Move = {
-  sr: number;
-  sc: number;
-  tr: number;
-  tc: number;
-};
+const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+const SUGGESTION_DEPTH = 10;
+const SUGGESTION_TIMEOUT_MS = 60000;
+const TIMER_TICK_MS = 250;
 
 type GameOverEvent = {
   type: "gameOver";
@@ -21,80 +21,82 @@ type GameOverEvent = {
   motivo: "timeout" | "checkmate" | "resignation";
 };
 
-function getPieceValue(piece: string): number {
-  const values: Record<string, number> = {
-    p: 1,
-    n: 3,
-    b: 3,
-    r: 5,
-    q: 9,
-    k: 1000,
-  };
-  return values[piece.toLowerCase()] || 0;
-}
-
-function evaluateMove(
-  board: string[][],
-  move: Move,
-  allMoves: Move[]
-): number {
-  const targetPiece = board[move.tr][move.tc];
-  let score = Math.random(); // Base randomness para variedade
-
-  // Priorizar captura de peças
-  if (targetPiece !== ".") {
-    score += getPieceValue(targetPiece) * 10; // Capturar peças valiosas primeiro
-  }
-
-  // Evitar colocar a peça em risco imediato (verificação simples)
-  // Se há mais de um movimento, dar prioridade a movimentos que se defendem melhor
-  score += Math.random() * 2;
-
-  return score;
-}
-
 type GameState = "setup" | "playing" | "gameOver";
+
+type SuggestionState =
+  | {
+      status: "idle";
+    }
+  | {
+      status: "loading";
+    }
+  | {
+      status: "ready";
+      analysis: StockfishAnalysis;
+    }
+  | {
+      status: "error";
+      message: string;
+    };
 
 export default function SoloPage() {
   const [gameState, setGameState] = useState<GameState>("setup");
-  const [fen, setFen] = useState(
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
-  );
+  const [fen, setFen] = useState(INITIAL_FEN);
   const [selectedTime, setSelectedTime] = useState(DEFAULT_TIME);
   const [whiteTime, setWhiteTime] = useState(DEFAULT_TIME);
   const [blackTime, setBlackTime] = useState(DEFAULT_TIME);
-  const [gameOverReason, setGameOverReason] = useState("");
   const [gameOverEvent, setGameOverEvent] = useState<GameOverEvent | null>(null);
   const [winner, setWinner] = useState<"white" | "black" | null>(null);
-  
+  const [suggestion, setSuggestion] = useState<SuggestionState>({
+    status: "idle",
+  });
+
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTickRef = useRef(0);
+  const suggestionRequestIdRef = useRef(0);
+  const timeoutHandledRef = useRef(false);
 
   const turn = fen.split(" ")[1] === "w" ? "white" : "black";
 
-  // Timer para modo solo
+  function finishByTimeout(color: "white" | "black") {
+    if (timeoutHandledRef.current) return;
+
+    const event: GameOverEvent = {
+      type: "gameOver",
+      winner: color === "white" ? "black" : "white",
+      reason:
+        color === "white"
+          ? "Tempo das Brancas acabou!"
+          : "Tempo das Pretas acabou!",
+      motivo: "timeout",
+    };
+
+    timeoutHandledRef.current = true;
+    suggestionRequestIdRef.current += 1;
+    cancelStockfishAnalysis("Partida finalizada.");
+    setGameState("gameOver");
+    setWinner(event.winner);
+    setGameOverEvent(event);
+    window.dispatchEvent(new CustomEvent("chessGameOver", { detail: event }));
+  }
+
   useEffect(() => {
     if (gameState !== "playing") return;
 
+    lastTickRef.current = Date.now();
     timerIntervalRef.current = setInterval(() => {
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - lastTickRef.current) / 1000);
+
+      if (elapsedSeconds <= 0) return;
+
+      lastTickRef.current += elapsedSeconds * 1000;
+
       setWhiteTime((prev) => {
         if (turn === "white") {
-          const newTime = Math.max(0, prev - 1);
+          const newTime = Math.max(0, prev - elapsedSeconds);
           if (newTime === 0) {
-            // Brancas perderam por timeout - Pretas vencem
-            const event: GameOverEvent = {
-              type: "gameOver",
-              winner: "black",
-              reason: "Tempo das Brancas acabou! ⏰",
-              motivo: "timeout",
-            };
-            setGameState("gameOver");
-            setGameOverReason("Tempo das Brancas acabou!");
-            setWinner("black");
-            setGameOverEvent(event);
-            // Emitir evento para analytics/logging
-            window.dispatchEvent(
-              new CustomEvent("chessGameOver", { detail: event })
-            );
+            finishByTimeout("white");
           }
           return newTime;
         }
@@ -103,29 +105,15 @@ export default function SoloPage() {
 
       setBlackTime((prev) => {
         if (turn === "black") {
-          const newTime = Math.max(0, prev - 1);
+          const newTime = Math.max(0, prev - elapsedSeconds);
           if (newTime === 0) {
-            // Pretas perderam por timeout - Brancas vencem
-            const event: GameOverEvent = {
-              type: "gameOver",
-              winner: "white",
-              reason: "Tempo das Pretas acabou! ⏰",
-              motivo: "timeout",
-            };
-            setGameState("gameOver");
-            setGameOverReason("Tempo das Pretas acabou!");
-            setWinner("white");
-            setGameOverEvent(event);
-            // Emitir evento para analytics/logging
-            window.dispatchEvent(
-              new CustomEvent("chessGameOver", { detail: event })
-            );
+            finishByTimeout("black");
           }
           return newTime;
         }
         return prev;
       });
-    }, 1000);
+    }, TIMER_TICK_MS);
 
     return () => {
       if (timerIntervalRef.current) {
@@ -134,90 +122,78 @@ export default function SoloPage() {
     };
   }, [gameState, turn]);
 
+  useEffect(() => {
+    return () => {
+      suggestionRequestIdRef.current += 1;
+      cancelStockfishAnalysis("Analise cancelada.");
+    };
+  }, []);
+
   function startGame() {
+    suggestionRequestIdRef.current += 1;
+    timeoutHandledRef.current = false;
+    lastTickRef.current = Date.now();
     setWhiteTime(selectedTime);
     setBlackTime(selectedTime);
-    setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w");
+    setFen(INITIAL_FEN);
     setGameState("playing");
     setWinner(null);
     setGameOverEvent(null);
-    setGameOverReason("");
+    setSuggestion({ status: "idle" });
   }
 
   function handleMove(newFen: string) {
-    // Bloquear movimentos se o jogo já acabou
     if (gameState !== "playing") return;
-    
-    setFen(newFen);
 
-    setTimeout(() => {
-      makeAIMove(newFen);
-    }, 800);
+    suggestionRequestIdRef.current += 1;
+    cancelStockfishAnalysis("Sugestao cancelada por novo movimento.");
+    setFen(newFen);
+    setSuggestion({ status: "idle" });
   }
 
-  function makeAIMove(currentFen: string) {
-    if (gameState !== "playing") return;
+  async function requestSuggestion() {
+    if (gameState !== "playing" || suggestion.status === "loading") return;
 
-    const board = fenToBoard(currentFen);
-    const possibleMoves: Move[] = [];
+    const requestId = suggestionRequestIdRef.current + 1;
+    suggestionRequestIdRef.current = requestId;
+    setSuggestion({ status: "loading" });
 
-    // Encontrar todos os movimentos válidos para as peças pretas
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const piece = board[r][c];
+    try {
+      const analysis = await analyzePosition(fen, {
+        depth: SUGGESTION_DEPTH,
+        timeoutMs: SUGGESTION_TIMEOUT_MS,
+      });
 
-        // Verificar se é peça preta
-        if (piece !== "." && piece === piece.toLowerCase()) {
-          const validMoves = getValidMoves(board, r, c, "black");
+      if (requestId !== suggestionRequestIdRef.current) return;
 
-          validMoves.forEach(({ r: tr, c: tc }) => {
-            possibleMoves.push({
-              sr: r,
-              sc: c,
-              tr,
-              tc,
-            });
-          });
-        }
-      }
+      setSuggestion({
+        status: "ready",
+        analysis,
+      });
+    } catch (error) {
+      if (requestId !== suggestionRequestIdRef.current) return;
+
+      setSuggestion({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel gerar a sugestao.",
+      });
     }
-
-    if (possibleMoves.length === 0) {
-      console.log("Nenhum movimento disponível para a IA");
-      return;
-    }
-
-    // Avaliar e escolher o melhor movimento
-    let bestMove = possibleMoves[0];
-    let bestScore = evaluateMove(board, bestMove, possibleMoves);
-
-    for (let i = 1; i < possibleMoves.length; i++) {
-      const score = evaluateMove(board, possibleMoves[i], possibleMoves);
-      if (score > bestScore) {
-        bestScore = score;
-        bestMove = possibleMoves[i];
-      }
-    }
-
-    // Executar o movimento
-    const newBoard = structuredClone(board);
-    newBoard[bestMove.tr][bestMove.tc] = newBoard[bestMove.sr][bestMove.sc];
-    newBoard[bestMove.sr][bestMove.sc] = ".";
-
-    const newFen = boardToFen(newBoard, "w");
-    setFen(newFen);
   }
 
   if (gameState === "setup") {
     return (
       <div className="w-full max-w-md mx-auto space-y-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-center">
-          Jogo Solo
+          Modo Solo
         </h1>
 
         <div className="bg-gray-900 p-6 rounded-lg space-y-4">
           <p className="text-gray-300">
-            Escolha quanto tempo você quer para jogar:
+            Treine livremente e solicite sugestoes do Stockfish durante a
+            partida.
           </p>
 
           <select
@@ -236,7 +212,7 @@ export default function SoloPage() {
             onClick={startGame}
             className="w-full bg-blue-600 hover:bg-blue-700 p-3 text-white font-semibold rounded-lg transition-colors"
           >
-            Começar Jogo
+            Comecar Treino
           </button>
         </div>
       </div>
@@ -245,7 +221,6 @@ export default function SoloPage() {
 
   return (
     <>
-      {/* Modal de Campeão */}
       {winner && gameOverEvent && (
         <ChampionModal
           isOpen={gameState === "gameOver"}
@@ -253,18 +228,19 @@ export default function SoloPage() {
           reason={gameOverEvent.reason}
           onPlayAgain={startGame}
           onBackToMenu={() => {
+            suggestionRequestIdRef.current += 1;
+            timeoutHandledRef.current = false;
             setGameState("setup");
             setWinner(null);
             setGameOverEvent(null);
-            setGameOverReason("");
+            setSuggestion({ status: "idle" });
           }}
         />
       )}
 
-      {/* Tela de Jogo */}
       <div className="w-full flex flex-col items-center justify-center gap-4 sm:gap-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-center">
-          Jogo Solo
+          Modo Solo
         </h1>
 
         <div className="w-full max-w-sm px-2">
@@ -276,8 +252,48 @@ export default function SoloPage() {
           />
         </div>
 
+        <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl bg-neutral-900 border border-neutral-800 rounded-lg p-4 space-y-3">
+          <button
+            onClick={requestSuggestion}
+            disabled={suggestion.status === "loading" || gameState !== "playing"}
+            className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:bg-gray-700 disabled:text-gray-400 p-3 text-black font-semibold rounded-lg transition-colors"
+          >
+            {suggestion.status === "loading"
+              ? "Analisando..."
+              : "Solicitar Sugestao"}
+          </button>
+
+          {suggestion.status === "ready" && (
+            <div className="grid gap-3 text-sm sm:text-base">
+              <div>
+                <p className="text-gray-400 font-semibold">Sugestao</p>
+                <p className="text-white text-lg">
+                  {suggestion.analysis.bestMoveDescription}
+                </p>
+                <p className="text-gray-500 font-mono">
+                  {suggestion.analysis.bestMove}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 font-semibold">Avaliacao</p>
+                <p className="text-white text-lg">
+                  {suggestion.analysis.evaluation.display}
+                </p>
+                <p className="text-gray-300">
+                  {suggestion.analysis.evaluation.label}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {suggestion.status === "error" && (
+            <p className="text-sm text-red-400">{suggestion.message}</p>
+          )}
+        </div>
+
         <div className="w-full flex justify-center px-2">
-          <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />
+          <ChessBoard gameFen={fen} playerColor="both" onMove={handleMove} />
         </div>
       </div>
     </>

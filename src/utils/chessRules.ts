@@ -57,8 +57,19 @@ export function isValidMove(
   switch (piece.toLowerCase()) {
     case "p": {
       const dir = isWhite(piece) ? -1 : 1;
+      const startRow = isWhite(piece) ? 6 : 1;
 
       if (dc === 0 && dr === dir && target === ".") return true;
+
+      if (
+        fromR === startRow &&
+        dc === 0 &&
+        dr === dir * 2 &&
+        target === "." &&
+        board[fromR + dir][fromC] === "."
+      ) {
+        return true;
+      }
 
       if (Math.abs(dc) === 1 && dr === dir && target !== ".") return true;
 

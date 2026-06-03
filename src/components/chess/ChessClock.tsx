@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 type Props = {
   whiteTime: number; // em segundos
   blackTime: number; // em segundos
@@ -33,47 +31,11 @@ export default function ChessClock({
   blackTime,
   turn,
   isRunning = true,
-  onTimeUp,
 }: Props) {
-  const [displayWhiteTime, setDisplayWhiteTime] = useState(whiteTime);
-  const [displayBlackTime, setDisplayBlackTime] = useState(blackTime);
-
-  useEffect(() => {
-    setDisplayWhiteTime(whiteTime);
-  }, [whiteTime]);
-
-  useEffect(() => {
-    setDisplayBlackTime(blackTime);
-  }, [blackTime]);
-
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const interval = setInterval(() => {
-      if (turn === "white") {
-        setDisplayWhiteTime((prev) => {
-          const newTime = Math.max(0, prev - 1);
-          if (newTime === 0 && onTimeUp) {
-            onTimeUp("white");
-          }
-          return newTime;
-        });
-      } else {
-        setDisplayBlackTime((prev) => {
-          const newTime = Math.max(0, prev - 1);
-          if (newTime === 0 && onTimeUp) {
-            onTimeUp("black");
-          }
-          return newTime;
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [turn, isRunning, onTimeUp]);
-
-  const whiteIsActive = turn === "white";
-  const blackIsActive = turn === "black";
+  const displayWhiteTime = Math.max(0, whiteTime);
+  const displayBlackTime = Math.max(0, blackTime);
+  const whiteIsActive = isRunning && turn === "white";
+  const blackIsActive = isRunning && turn === "black";
 
   const whiteWarning = isTimeWarning(displayWhiteTime);
   const blackWarning = isTimeWarning(displayBlackTime);

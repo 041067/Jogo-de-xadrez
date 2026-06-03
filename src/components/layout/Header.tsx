@@ -4,7 +4,7 @@ export default function Header() {
   return (
     <header className="bg-red-600 text-white shadow">
       <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-        <h1 className="text-xl font-bold">♟ Chess SESI SENAI</h1>
+        <h1 className="text-xl font-bold">Chess SESI SENAI</h1>
 
         <nav className="flex gap-4">
           <Link href="/" className="hover:underline">
@@ -15,6 +15,9 @@ export default function Header() {
           </Link>
           <Link href="/multiplayer" className="hover:underline">
             Multiplayer
+          </Link>
+          <Link href="/ai" className="hover:underline">
+            IA
           </Link>
         </nav>
       </div>
