@@ -33,7 +33,7 @@ export default function ChessGraffiti() {
           letterSpacing="-2"
           style={{ filter: "url(#roughen)", opacity: 0.3 }}
         >
-          XADREZ
+          Café
         </text>
 
         {/* Main text with gradient */}
@@ -49,10 +49,10 @@ export default function ChessGraffiti() {
           fontFamily="Arial, sans-serif"
           letterSpacing="-2"
         >
-          XADREZ
+          Café
         </text>
 
-        {/* Second line - SESI SENAI */}
+        {/* Second line - Chess Master */}
         <text
           x="50%"
           y="120"
@@ -65,7 +65,7 @@ export default function ChessGraffiti() {
           fontFamily="Arial, sans-serif"
           letterSpacing="2"
         >
-          SESI SENAI
+          Chess Master
         </text>
 
         {/* Decorative elements */}

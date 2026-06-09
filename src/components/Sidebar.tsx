@@ -36,7 +36,7 @@ export default function Sidebar() {
           className="text-2xl font-bold text-red-600 tracking-wide cursor-pointer hover:text-red-500 transition-colors mt-12 md:mt-0"
           onClick={() => goTo("/")}
         >
-          SESI SENAI
+          ChessMaster
         </div>
 
         <nav className="flex flex-col gap-2">
