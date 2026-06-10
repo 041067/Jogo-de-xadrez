@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Next.js Static Export
+      - name: Build Next.js
         run: npm run build
 
       - name: Sync Capacitor Android
@@ -40,12 +43,24 @@ jobs:
       - name: Make Gradle Executable
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
+      - name: Build APK
         working-directory: android
         run: ./gradlew assembleDebug
 
-      - name: Upload APK Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: jogo-de-xadrez-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Generate Release Tag
+        id: tag
+        run: echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Jogo de Xadrez ${{ steps.tag.outputs.tag }}
+          generate_release_notes: true
+          files: android/app/build/outputs/apk/debug/app-debug.apk
