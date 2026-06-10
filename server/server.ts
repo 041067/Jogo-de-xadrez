@@ -103,7 +103,20 @@ function isValidChessMove(
   switch (piece.toLowerCase()) {
     case "p": {
       const dir = isPieceWhite ? -1 : 1;
+      const startRow = isPieceWhite ? 6 : 1;
+
       if (dc === 0 && dr === dir && target === ".") return true;
+
+      if (
+        dc === 0 &&
+        fromR === startRow &&
+        dr === dir * 2 &&
+        target === "." &&
+        board[fromR + dir][fromC] === "."
+      ) {
+        return true;
+      }
+
       if (Math.abs(dc) === 1 && dr === dir && target !== ".") return true;
       return false;
     }
@@ -139,20 +152,30 @@ function validateMovement(oldFen: string, newFen: string): boolean {
   const oldTurn = oldFen.split(" ")[1] as "w" | "b";
   const oldBoard = fenToBoard(oldFen);
   const newBoard = fenToBoard(newFen);
+  const expectedNewTurn = oldTurn === "w" ? "b" : "w";
+  const newTurn = newFen.split(" ")[1] as "w" | "b";
+
+  if (newTurn !== expectedNewTurn) {
+    console.log("Turno invalido na nova FEN");
+    return false;
+  }
 
   let fromR = -1,
     fromC = -1,
     toR = -1,
-    toC = -1;
+    toC = -1,
+    changes = 0;
 
   // Encontra qual peça se moveu
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (oldBoard[r][c] !== newBoard[r][c]) {
+        changes++;
+
         if (oldBoard[r][c] !== "." && newBoard[r][c] === ".") {
           fromR = r;
           fromC = c;
-        } else if (oldBoard[r][c] === "." && newBoard[r][c] !== ".") {
+        } else if (newBoard[r][c] !== ".") {
           toR = r;
           toC = c;
         }
@@ -161,12 +184,17 @@ function validateMovement(oldFen: string, newFen: string): boolean {
   }
 
   // Se não encontrou movimento válido
-  if (fromR === -1 || toR === -1) {
+  if (changes !== 2 || fromR === -1 || toR === -1) {
     console.log("Não conseguiu detectar o movimento");
     return false;
   }
 
   // Valida se o movimento segue as regras de xadrez
+  if (newBoard[toR][toC] !== oldBoard[fromR][fromC]) {
+    console.log("Peca alterada durante o movimento");
+    return false;
+  }
+
   return isValidChessMove(oldBoard, fromR, fromC, toR, toC, oldTurn);
 }
 
