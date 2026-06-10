@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+android
+.git
+.github
+infra
+*.log
+.env.local
