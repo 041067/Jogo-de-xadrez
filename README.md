@@ -1,15 +1,15 @@
-# ♟️ Jogo de Xadrez Online — SESI Brotas & SENAI Jaú
+# ♟️ Jogo de Xadrez Online
 
 <div align="center">
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
-![Socket.IO](https://img.shields.io/badge/Socket.IO-Realtime-black?style=for-the-badge&logo=socketdotio)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge\&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge\&logo=typescript)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-Realtime-black?style=for-the-badge\&logo=socketdotio)
 ![Stockfish](https://img.shields.io/badge/Stockfish-Chess%20AI-green?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?style=for-the-badge&logo=terraform)
-![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?style=for-the-badge&logo=githubactions)
-![Android](https://img.shields.io/badge/Android-Capacitor-3DDC84?style=for-the-badge&logo=android)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge\&logo=docker)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?style=for-the-badge\&logo=terraform)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?style=for-the-badge\&logo=githubactions)
+![Android](https://img.shields.io/badge/Android-Capacitor-3DDC84?style=for-the-badge\&logo=android)
 
 </div>
 
@@ -17,19 +17,11 @@
 
 ## 📖 Sobre o Projeto
 
-O **Jogo de Xadrez Online** é um projeto integrador desenvolvido em parceria entre o **SESI Brotas** e o **SENAI Jaú**, com o objetivo de unir tecnologia, estratégia e desenvolvimento de software moderno em uma plataforma completa para ensino, treinamento e competição de xadrez.
+O **Jogo de Xadrez Online** é uma plataforma moderna desenvolvida para proporcionar uma experiência completa de prática, aprendizado e competição em xadrez, combinando recursos de multiplayer em tempo real, inteligência artificial e distribuição multiplataforma.
 
-O projeto foi concebido utilizando práticas profissionais de desenvolvimento Full Stack, DevOps, Computação em Nuvem, Infraestrutura como Código e Inteligência Artificial, proporcionando uma experiência próxima à encontrada em aplicações corporativas modernas.
+O projeto foi construído utilizando práticas profissionais de desenvolvimento Full Stack, DevOps, Computação em Nuvem, Infraestrutura como Código e Desenvolvimento Mobile, buscando reproduzir desafios e soluções encontrados em aplicações reais.
 
-Além do aspecto educacional, o sistema serve como laboratório prático para aplicação de conceitos de:
-
-- Desenvolvimento Web
-- Programação em Tempo Real
-- Inteligência Artificial
-- Computação em Nuvem
-- DevOps
-- Mobile Development
-- Infraestrutura como Código
+Além de oferecer uma experiência sólida para os usuários finais, o sistema demonstra a integração de diferentes áreas da engenharia de software em uma única aplicação.
 
 ---
 
@@ -41,11 +33,11 @@ Pratique livremente utilizando o tabuleiro interativo.
 
 ### Recursos
 
-- Movimentação completa das peças
-- Validação das regras do xadrez
-- Relógio de partida
-- Controle de turnos
-- Interface responsiva
+* Movimentação completa das peças
+* Validação das regras do xadrez
+* Relógio de partida
+* Controle de turnos
+* Interface responsiva
 
 ---
 
@@ -55,19 +47,19 @@ Dispute partidas online utilizando WebSockets.
 
 ### Recursos
 
-- Criação de salas privadas
-- Compartilhamento de código de sala
-- Sincronização em tempo real
-- Controle de turnos pelo servidor
-- Validação de movimentos no backend
-- Relógio sincronizado
-- Detecção de vitória
+* Criação de salas privadas
+* Compartilhamento de código de sala
+* Sincronização em tempo real
+* Controle de turnos pelo servidor
+* Validação de movimentos no backend
+* Relógio sincronizado
+* Detecção automática de vitória
 
 ---
 
 ## 🤖 Inteligência Artificial (Stockfish)
 
-O projeto integra a engine de xadrez mais utilizada do mundo.
+Integração com a engine de xadrez mais utilizada do mundo.
 
 ### Modo Treinamento
 
@@ -75,9 +67,9 @@ Disponível exclusivamente no modo Solo.
 
 Permite:
 
-- Solicitar sugestões de jogadas
-- Receber a melhor jogada da posição atual
-- Avaliar a posição do tabuleiro
+* Solicitar sugestões de jogadas;
+* Receber a melhor jogada da posição atual;
+* Avaliar o estado da partida.
 
 Exemplo:
 
@@ -100,33 +92,33 @@ Modo dedicado para partidas contra o computador.
 
 #### 🟢 Iniciante
 
-- Depth 5
-- Comete erros
-- Ideal para iniciantes
+* Depth 5
+* Ideal para iniciantes
+* Comete erros ocasionais
 
 #### 🟡 Intermediário
 
-- Depth 10
-- Boa estratégia
-- Boa tática
+* Depth 10
+* Boa estratégia
+* Boa capacidade tática
 
 #### 🔴 Avançado
 
-- Depth 15+
-- Análise profunda
-- Difícil de derrotar
+* Depth 15+
+* Análise profunda
+* Alto nível de dificuldade
 
 ---
 
 ## ⏱️ Relógio de Partida
 
-Cada jogador possui controle de tempo individual.
+Cada jogador possui controle individual de tempo.
 
 ### Recursos
 
-- Contagem regressiva
-- Alternância automática
-- Vitória por tempo
+* Contagem regressiva;
+* Alternância automática;
+* Vitória por esgotamento do tempo.
 
 ---
 
@@ -134,9 +126,9 @@ Cada jogador possui controle de tempo individual.
 
 Ao final da partida:
 
-- Exibe vencedor
-- Bloqueia novos movimentos
-- Exibe mensagem de resultado
+* Exibe o vencedor;
+* Bloqueia novos movimentos;
+* Apresenta mensagem de encerramento.
 
 ---
 
@@ -146,15 +138,15 @@ O projeto também pode ser executado como aplicativo Android.
 
 ### Tecnologias
 
-- Capacitor
-- Android SDK
-- Gradle
+* Capacitor
+* Android SDK
+* Gradle
 
 ### Distribuição
 
-- APK gerado automaticamente
-- Pipeline CI/CD
-- Releases automatizadas
+* APK gerado automaticamente;
+* Pipeline CI/CD;
+* Releases automatizadas.
 
 ---
 
@@ -194,40 +186,40 @@ O projeto também pode ser executado como aplicativo Android.
 
 ## Frontend
 
-- Next.js 16
-- React
-- TypeScript
-- Tailwind CSS
+* Next.js 16
+* React
+* TypeScript
+* Tailwind CSS
 
 ## Backend
 
-- Node.js
-- Express
-- Socket.IO
+* Node.js
+* Express
+* Socket.IO
 
 ## Inteligência Artificial
 
-- Stockfish
+* Stockfish
 
 ## DevOps
 
-- Docker
-- Docker Compose
-- GitHub Actions
+* Docker
+* Docker Compose
+* GitHub Actions
 
 ## Infraestrutura
 
-- Terraform
+* Terraform
 
 ## Cloud
 
-- Vercel
-- Render
+* Vercel
+* Render
 
 ## Mobile
 
-- Capacitor
-- Android
+* Capacitor
+* Android
 
 ---
 
@@ -239,10 +231,9 @@ Hospedado na Vercel.
 
 Responsável por:
 
-- Interface do usuário
-- Modo Solo
-- Integração com IA
-- Comunicação WebSocket
+* Interface do usuário;
+* Modos Solo e IA;
+* Comunicação com o backend.
 
 ---
 
@@ -252,10 +243,10 @@ Hospedado no Render.
 
 Responsável por:
 
-- Multiplayer
-- Controle de salas
-- Sincronização
-- Validação de jogadas
+* Multiplayer;
+* Controle de salas;
+* Sincronização em tempo real;
+* Validação de jogadas.
 
 ---
 
@@ -263,9 +254,7 @@ Responsável por:
 
 O projeto utiliza GitHub Actions para automação.
 
-## Pipelines
-
-### Continuous Integration
+## Continuous Integration
 
 Executa automaticamente:
 
@@ -277,7 +266,7 @@ terraform validate
 
 ---
 
-### Android Build
+## Android Build
 
 Executa automaticamente:
 
@@ -289,7 +278,7 @@ APK Generation
 
 ---
 
-### GitHub Releases
+## GitHub Releases
 
 A cada atualização:
 
@@ -309,7 +298,7 @@ Disponibilização para Download
 
 ## Pré-requisitos
 
-- Docker Desktop
+* Docker Desktop
 
 ---
 
@@ -347,10 +336,10 @@ O projeto utiliza Terraform para documentação e gerenciamento da infraestrutur
 
 ### Recursos contemplados
 
-- Frontend
-- Backend
-- Ambientes Cloud
-- Estrutura DevOps
+* Frontend;
+* Backend;
+* Ambientes Cloud;
+* Estrutura DevOps.
 
 ---
 
@@ -371,20 +360,19 @@ android/app/build/outputs/apk/debug
 
 ---
 
-# 🎯 Objetivos Educacionais
+# 🎯 Objetivos do Projeto
 
-Este projeto foi desenvolvido para demonstrar, na prática, conceitos de:
+Demonstrar, na prática, a integração entre diferentes disciplinas da engenharia de software moderna, incluindo:
 
-- Programação Web Moderna
-- Arquiteturas Cloud Native
-- WebSockets
-- DevOps
-- Docker
-- Terraform
-- CI/CD
-- Inteligência Artificial
-- Desenvolvimento Mobile
-- Integração Frontend e Backend
+* Desenvolvimento Web;
+* Comunicação em tempo real;
+* Inteligência Artificial aplicada;
+* DevOps;
+* Containers;
+* Infraestrutura como Código;
+* CI/CD;
+* Computação em Nuvem;
+* Desenvolvimento Mobile.
 
 ---
 
@@ -392,62 +380,56 @@ Este projeto foi desenvolvido para demonstrar, na prática, conceitos de:
 
 ## Versão Atual
 
-- [x] Modo Solo
-- [x] Multiplayer Online
-- [x] Controle de Tempo
-- [x] Sistema de Campeão
-- [x] Sugestões por IA
-- [x] Avaliação de Posição
-- [x] IA Iniciante
-- [x] IA Intermediária
-- [x] IA Avançada
-- [x] APK Android
-- [x] GitHub Actions
-- [x] Docker
-- [x] Terraform
-- [x] GitHub Releases
+* [x] Modo Solo
+* [x] Multiplayer Online
+* [x] Controle de Tempo
+* [x] Sistema de Campeão
+* [x] Sugestões por IA
+* [x] Avaliação de Posição
+* [x] IA Iniciante
+* [x] IA Intermediária
+* [x] IA Avançada
+* [x] APK Android
+* [x] GitHub Actions
+* [x] Docker
+* [x] Terraform
+* [x] GitHub Releases
 
 ---
 
 ## Próximas Versões
 
-- [ ] APK Release Assinado
-- [ ] Publicação na Google Play Store
-- [ ] Monitoramento e Observabilidade
-- [ ] Health Check do Backend
-- [ ] Dashboard de Estatísticas
-- [ ] Histórico de Partidas
-- [ ] Ranking de Jogadores
-- [ ] Integração com IA Local (Ollama)
-- [ ] Treinador Virtual de Xadrez
-- [ ] Análise Pós-Partida com IA
+* [ ] APK Release Assinado
+* [ ] Publicação na Google Play Store
+* [ ] Monitoramento e Observabilidade
+* [ ] Health Check do Backend
+* [ ] Dashboard de Estatísticas
+* [ ] Histórico de Partidas
+* [ ] Ranking de Jogadores
+* [ ] Integração com IA Local (Ollama)
+* [ ] Treinador Virtual de Xadrez
+* [ ] Análise Pós-Partida com IA
 
 ---
 
-# 👨‍💻 Desenvolvimento
+# 👨‍💻 Autor
 
-Projeto Integrador desenvolvido em parceria entre:
+Desenvolvido por **Renan Rodrigues**.
 
-### 🏫 SENAI Jaú
-
-Formação técnica e desenvolvimento de software.
-
-### 🏫 SESI Brotas
-
-Aplicação educacional e validação do projeto.
+Este projeto representa a aplicação prática de tecnologias modernas para construção de soluções completas, abrangendo frontend, backend, infraestrutura, automação, inteligência artificial e distribuição mobile.
 
 ---
 
 # 📄 Licença
 
-Projeto desenvolvido para fins educacionais, acadêmicos e demonstração tecnológica.
+Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para mais informações.
 
 ---
 
 <div align="center">
 
-### ♟️ Tecnologia, Estratégia e Inovação em uma única plataforma.
+### ♟️ Tecnologia, Estratégia e Engenharia de Software em uma única plataforma.
 
-**SESI Brotas • SENAI Jaú**
+**Desenvolvido por Renan Rodrigues**
 
 </div>
