@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'br.com.senai.jogoxadrez',
-  appName: ' Jogo de Xadrez',
+  appName: 'ChessMaster',
   webDir: 'out',
 };
 

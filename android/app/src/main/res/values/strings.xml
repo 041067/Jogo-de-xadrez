@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name"> Jogo de Xadrez</string>
-    <string name="title_activity_main"> Jogo de Xadrez</string>
+    <string name="app_name">ChessMaster</string>
+    <string name="title_activity_main">ChessMaster</string>
     <string name="package_name">br.com.senai.jogoxadrez</string>
     <string name="custom_url_scheme">br.com.senai.jogoxadrez</string>
 </resources>

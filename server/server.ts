@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { getGameStatus, isValidMove } from "../src/utils/chessRules.ts";
 
 const app = express();
 const httpServer = createServer(app);
@@ -24,6 +25,7 @@ type Room = {
   lastMoveTime: number; // timestamp do último movimento
   timerInterval?: NodeJS.Timeout;
   gameStarted: boolean;
+  gameOver: boolean;
 };
 
 const rooms: Record<string, Room> = {};
@@ -190,13 +192,29 @@ function validateMovement(oldFen: string, newFen: string): boolean {
     return false;
   }
 
-  // Valida se o movimento segue as regras de xadrez
-  if (newBoard[toR][toC] !== oldBoard[fromR][fromC]) {
+  // Aceita a promoção automática para dama, torre, bispo ou cavalo.
+  const movingPiece = oldBoard[fromR][fromC];
+  const promotedPiece = newBoard[toR][toC];
+  const isValidPromotion =
+    movingPiece.toLowerCase() === "p" &&
+    (toR === 0 || toR === 7) &&
+    ["q", "r", "b", "n"].includes(promotedPiece.toLowerCase()) &&
+    (movingPiece === movingPiece.toUpperCase()) ===
+      (promotedPiece === promotedPiece.toUpperCase());
+
+  if (promotedPiece !== movingPiece && !isValidPromotion) {
     console.log("Peca alterada durante o movimento");
     return false;
   }
 
-  return isValidChessMove(oldBoard, fromR, fromC, toR, toC, oldTurn);
+  return isValidMove(
+    oldBoard,
+    fromR,
+    fromC,
+    toR,
+    toC,
+    oldTurn === "w" ? "white" : "black",
+  );
 }
 
 io.on("connection", (socket) => {
@@ -212,6 +230,7 @@ io.on("connection", (socket) => {
       blackTime: initialTime,
       lastMoveTime: Date.now(),
       gameStarted: false,
+      gameOver: false,
     };
 
     socket.join(roomId);
@@ -285,6 +304,7 @@ io.on("connection", (socket) => {
           io.to(roomId).emit("timeUp", { color: "white" });
           clearInterval(room.timerInterval);
           room.gameStarted = false;
+          room.gameOver = true;
           return;
         }
       } else {
@@ -294,6 +314,7 @@ io.on("connection", (socket) => {
           io.to(roomId).emit("timeUp", { color: "black" });
           clearInterval(room.timerInterval);
           room.gameStarted = false;
+          room.gameOver = true;
           return;
         }
       }
@@ -309,6 +330,11 @@ io.on("connection", (socket) => {
   socket.on("move", ({ roomId, fen }) => {
     const room = rooms[roomId];
     if (!room) return;
+
+    if (!room.gameStarted || room.gameOver) {
+      socket.emit("errorMessage", "A partida j\u00e1 foi finalizada");
+      return;
+    }
 
     // Valida se o socket que fez o movimento é um jogador válido
     const player = room.players.find((p) => p.id === socket.id);
@@ -343,11 +369,26 @@ io.on("connection", (socket) => {
     room.fen = fen;
     room.lastMoveTime = Date.now();
 
+    const nextTurn = fen.split(" ")[1] === "w" ? "white" : "black";
+    const status = getGameStatus(fenToBoard(fen), nextTurn);
+
     io.to(roomId).emit("move", fen);
     io.to(roomId).emit("timeSync", {
       whiteTime: room.whiteTime,
       blackTime: room.blackTime,
     });
+
+    if (status === "checkmate") {
+      room.gameOver = true;
+      room.gameStarted = false;
+      if (room.timerInterval) clearInterval(room.timerInterval);
+
+      io.to(roomId).emit("gameOver", {
+        winner: nextTurn === "white" ? "black" : "white",
+        reason: `Xeque-mate! ${nextTurn === "white" ? "As Brancas" : "As Pretas"} n\u00e3o t\u00eam movimentos legais.`,
+        motivo: "checkmate",
+      });
+    }
   });
 
   socket.on("disconnect", () => {

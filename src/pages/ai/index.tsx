@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
 import ChessClock from "@/components/chess/ChessClock";
 import ChampionModal from "@/components/ChampionModal";
+import { getGameStatus } from "@/utils/chessRules";
+import { fenToBoard } from "@/utils/fen";
 import {
   AI_DIFFICULTIES,
   analyzePosition,
@@ -80,8 +82,29 @@ export default function AiPage() {
     };
 
     timeoutHandledRef.current = true;
+    gameStateRef.current = "gameOver";
     analysisIdRef.current += 1;
     cancelStockfishAnalysis("Partida finalizada.");
+    setGameState("gameOver");
+    setWinner(winnerColor);
+    setGameOverEvent(event);
+    window.dispatchEvent(new CustomEvent("chessGameOver", { detail: event }));
+  }
+
+  function finishByCheckmate(loser: PlayerColor) {
+    if (gameStateRef.current !== "playing") return;
+
+    const winnerColor = loser === "white" ? "black" : "white";
+    const event: GameOverEvent = {
+      type: "gameOver",
+      winner: winnerColor,
+      reason: `Xeque-mate! ${loser === "white" ? "As Brancas" : "As Pretas"} não têm movimentos legais.`,
+      motivo: "checkmate",
+    };
+
+    gameStateRef.current = "gameOver";
+    analysisIdRef.current += 1;
+    cancelStockfishAnalysis("Partida finalizada por xeque-mate.");
     setGameState("gameOver");
     setWinner(winnerColor);
     setGameOverEvent(event);
@@ -140,6 +163,7 @@ export default function AiPage() {
   function startGame() {
     analysisIdRef.current += 1;
     timeoutHandledRef.current = false;
+    gameStateRef.current = "playing";
     lastTickRef.current = Date.now();
     setWhiteTime(selectedTime);
     setBlackTime(selectedTime);
@@ -159,7 +183,13 @@ export default function AiPage() {
     setAiError("");
     setLastAiAnalysis(null);
 
-    if (newFen.split(" ")[1] === "b") {
+    const nextTurn = newFen.split(" ")[1] === "w" ? "white" : "black";
+    if (getGameStatus(fenToBoard(newFen), nextTurn) === "checkmate") {
+      finishByCheckmate(nextTurn);
+      return;
+    }
+
+    if (nextTurn === "black") {
       void makeAiMove(newFen);
     }
   }
@@ -183,8 +213,15 @@ export default function AiPage() {
         return;
       }
 
-      setFen(applyUciMoveToFen(currentFen, analysis.bestMove));
+      const nextFen = applyUciMoveToFen(currentFen, analysis.bestMove);
+      const nextTurn = nextFen.split(" ")[1] === "w" ? "white" : "black";
+
+      setFen(nextFen);
       setLastAiAnalysis(analysis);
+
+      if (getGameStatus(fenToBoard(nextFen), nextTurn) === "checkmate") {
+        finishByCheckmate(nextTurn);
+      }
     } catch (error) {
       if (requestId !== analysisIdRef.current) return;
 
@@ -281,9 +318,11 @@ export default function AiPage() {
           isOpen={gameState === "gameOver"}
           winner={winner}
           reason={gameOverEvent.reason}
+          playerColor="white"
           onPlayAgain={startGame}
           onBackToMenu={() => {
             analysisIdRef.current += 1;
+            gameStateRef.current = "setup";
             setGameState("setup");
             setWinner(null);
             setGameOverEvent(null);
@@ -339,7 +378,12 @@ export default function AiPage() {
         </div>
 
         <div className="w-full flex justify-center px-2">
-          <ChessBoard gameFen={fen} playerColor="white" onMove={handleMove} />
+          <ChessBoard
+            gameFen={fen}
+            playerColor="white"
+            onMove={handleMove}
+            disabled={gameState !== "playing" || aiThinking}
+          />
         </div>
       </div>
     </>

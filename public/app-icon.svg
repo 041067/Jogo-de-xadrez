@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chess pawn">
+  <defs>
+    <linearGradient id="board" x1="72" y1="48" x2="450" y2="486" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#board)"/>
+  <path d="M64 384h384v64H64z" fill="#450a0a" opacity=".35"/>
+  <circle cx="256" cy="155" r="74" fill="#fff"/>
+  <path d="M211 246h90l24 99h42c15 0 27 12 27 27v19H118v-19c0-15 12-27 27-27h42z" fill="#fff"/>
+  <path d="M143 404h226c17 0 31 14 31 31v17H112v-17c0-17 14-31 31-31z" fill="#fff"/>
+  <path d="M185 345h142l-10-42H195z" fill="#fecaca" opacity=".85"/>
+</svg>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function Sidebar() {
@@ -33,10 +34,17 @@ export default function Sidebar() {
       `}
       >
         <div
-          className="text-2xl font-bold text-red-600 tracking-wide cursor-pointer hover:text-red-500 transition-colors mt-12 md:mt-0"
+          className="mt-12 flex cursor-pointer items-center gap-3 text-2xl font-bold tracking-wide text-red-600 transition-colors hover:text-red-500 md:mt-0"
           onClick={() => goTo("/")}
         >
-          ChessMaster
+          <Image
+            src="/app-icon.svg"
+            alt="Ícone ChessMaster"
+            width={40}
+            height={40}
+            priority
+          />
+          <span>ChessMaster</span>
         </div>
 
         <nav className="flex flex-col gap-2">

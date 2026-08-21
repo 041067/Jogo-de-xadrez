@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import ChessBoard from "@/components/chess/ChessBoard";
 import ChessClock from "@/components/chess/ChessClock";
 import ChampionModal from "@/components/ChampionModal";
+import { fenToBoard } from "@/utils/fen";
+import { getGameStatus } from "@/utils/chessRules";
 import {
   analyzePosition,
   cancelStockfishAnalysis,
@@ -80,6 +82,25 @@ export default function SoloPage() {
     window.dispatchEvent(new CustomEvent("chessGameOver", { detail: event }));
   }
 
+  function finishByCheckmate(loser: "white" | "black") {
+    if (gameState !== "playing") return;
+
+    const winnerColor = loser === "white" ? "black" : "white";
+    const event: GameOverEvent = {
+      type: "gameOver",
+      winner: winnerColor,
+      reason: `Xeque-mate! ${loser === "white" ? "As Brancas" : "As Pretas"} não têm movimentos legais.`,
+      motivo: "checkmate",
+    };
+
+    suggestionRequestIdRef.current += 1;
+    cancelStockfishAnalysis("Partida finalizada por xeque-mate.");
+    setGameState("gameOver");
+    setWinner(event.winner);
+    setGameOverEvent(event);
+    window.dispatchEvent(new CustomEvent("chessGameOver", { detail: event }));
+  }
+
   useEffect(() => {
     if (gameState !== "playing") return;
 
@@ -149,6 +170,11 @@ export default function SoloPage() {
     cancelStockfishAnalysis("Sugestao cancelada por novo movimento.");
     setFen(newFen);
     setSuggestion({ status: "idle" });
+
+    const nextTurn = newFen.split(" ")[1] === "w" ? "white" : "black";
+    if (getGameStatus(fenToBoard(newFen), nextTurn) === "checkmate") {
+      finishByCheckmate(nextTurn);
+    }
   }
 
   async function requestSuggestion() {
@@ -293,7 +319,12 @@ export default function SoloPage() {
         </div>
 
         <div className="w-full flex justify-center px-2">
-          <ChessBoard gameFen={fen} playerColor="both" onMove={handleMove} />
+          <ChessBoard
+            gameFen={fen}
+            playerColor="both"
+            onMove={handleMove}
+            disabled={gameState !== "playing"}
+          />
         </div>
       </div>
     </>
